@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load asset_filters %}
+
+{% block title %}Dashboard - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <p class="text-muted-foreground mt-1 text-center">Welcome back, {{ user.username }}</p>
+        </div>
+        <a href="{% url 'asset_create' %}" class="btn btn-primary">
+            + Add Asset
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <p class="text-sm text-muted-foreground">Total Portfolio Value</p>
+                <p class="text-3xl font-bold text-primary">₹{{ total_value|floatformat:2|default:"0.00" }}</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <p class="text-sm text-muted-foreground">Total Assets</p>
+                <p class="text-3xl font-bold">{{ total_assets }}</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <p class="text-sm text-muted-foreground">Categories</p>
+                <p class="text-3xl font-bold">{{ category_breakdown|length }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions and Asset Distribution Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 dashboard-row">
+        <!-- Asset Distribution -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Asset Distribution</h2>
+            </div>
+            <div class="card-content">
+                {% if category_breakdown %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Assets</th>
+                                <th>Total Value</th>
+                                <th>%</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in category_breakdown %}
+                            <tr>
+                                <td>
+                                    <span class="font-medium">{{ category_labels|get_item:item.category }}</span>
+                                </td>
+                                <td>{{ item.count }}</td>
+                                <td class="font-medium">₹{{ item.total|floatformat:0 }}</td>
+                                <td>
+                                    {% widthratio item.total total_value 100 as percentage %}
+                                    <div class="battery-cell">
+                                        <div class="battery-bar">
+                                            <div class="battery-fill" style="width: {{ percentage }}%"></div>
+                                        </div>
+                                        <span class="battery-percent" data-percent="{{ percentage }}">{{ percentage }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'asset_list' %}?category={{ item.category }}" class="btn btn-ghost btn-sm">
+                                        View →
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No assets yet. Add your first asset to see the distribution.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Add by Category -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Quick Add Asset</h2>
+            </div>
+            <div class="card-content">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {% for code, label in category_choices %}
+                    <a href="{% url 'asset_create' %}?category={{ code }}" class="category-btn">
+                        <span class="category-icon">
+                            {% if code == 'mutual_funds' %}📊
+                            {% elif code == 'stocks' %}📈
+                            {% elif code == 'lands' %}🏞️
+                            {% elif code == 'flats' %}🏢
+                            {% elif code == 'fixed_deposit' %}🏦
+                            {% elif code == 'medical_insurance' %}🏥
+                            {% elif code == 'life_insurance' %}🛡️
+                            {% elif code == 'gold' %}🥇
+                            {% endif %}
+                        </span>
+                        <span class="category-label">{{ label }}</span>
+                        <span class="category-count">{{ category_counts|get_item:code|default:0 }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Assets -->
+    {% if recent_assets %}
+    <div class="card">
+        <div class="card-header flex-row justify-between items-center">
+            <h2 class="card-title">Recent Assets</h2>
+            <a href="{% url 'asset_list' %}" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <div class="card-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for asset in recent_assets %}
+                <a href="{% url 'asset_detail' asset.pk %}" class="asset-card">
+                    <div class="asset-card-header">
+                        <span class="asset-category-badge">{{ asset.get_category_display }}</span>
+                    </div>
+                    <h3 class="asset-name">{{ asset.name }}</h3>
+                    <p class="asset-value">₹{{ asset.value|floatformat:2 }}</p>
+                    <p class="asset-date">{{ asset.start_date|date:"M d, Y" }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hierarchy gradient: green (top) -> yellow -> orange -> red (bottom)
+    const elements = document.querySelectorAll('.battery-percent');
+    const total = elements.length;
+    
+    elements.forEach((el, index) => {
+        // Calculate position ratio (0 = top, 1 = bottom)
+        const ratio = total > 1 ? index / (total - 1) : 0;
+        
+        let color;
+        if (ratio <= 0.33) {
+            color = '#22c55e'; // Green (top tier)
+        } else if (ratio <= 0.66) {
+            color = '#eab308'; // Yellow (middle tier)
+        } else {
+            color = '#ef4444'; // Red (bottom tier)
+        }
+        el.style.color = color;
+    });
+});
+</script>
+{% endblock %}

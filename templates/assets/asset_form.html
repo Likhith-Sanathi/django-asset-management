@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Add{% endif %} Asset - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-muted-foreground">
+        <a href="{% url 'dashboard' %}" class="hover:text-primary">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'asset_list' %}" class="hover:text-primary">Assets</a>
+        <span class="mx-2">/</span>
+        <span>{% if is_edit %}Edit{% else %}Add{% endif %} Asset</span>
+    </nav>
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold">
+            {% if is_edit %}Edit Asset{% else %}Add New Asset{% endif %}
+        </h1>
+        {% if category_label %}
+        <p class="text-muted-foreground mt-1">Category: {{ category_label }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Form Card -->
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="card-content space-y-6">
+                <!-- Basic Info -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Basic Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_name" class="form-label">Asset Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <p class="form-error">{{ form.name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_category" class="form-label">Category *</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <p class="form-error">{{ form.category.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_value" class="form-label">Current Value (₹) *</label>
+                        {{ form.value }}
+                        {% if form.value.errors %}
+                        <p class="form-error">{{ form.value.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_description" class="form-label">Description</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Dates</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_start_date" class="form-label">Start Date *</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <p class="form-error">{{ form.start_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_end_date" class="form-label">End Date</label>
+                            {{ form.end_date }}
+                            <p class="form-hint">Maturity date (for FD, Insurance, etc.)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Land/Flat Specific Fields -->
+                <div class="form-section category-section" data-categories="lands,flats" id="land-flat-section">
+                    <h3 class="form-section-title">Property Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_area" class="form-label">Area</label>
+                            {{ form.area }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_area_unit" class="form-label">Unit</label>
+                            {{ form.area_unit }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="coordinates-section" data-categories="lands">
+                        <div class="form-group">
+                            <label for="id_latitude" class="form-label">Latitude</label>
+                            {{ form.latitude }}
+                            <p class="form-hint">Required for land assets</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_longitude" class="form-label">Longitude</label>
+                            {{ form.longitude }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gold Specific Fields -->
+                <div class="form-section category-section" data-categories="gold" id="gold-section">
+                    <h3 class="form-section-title">Gold Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_weight_grams" class="form-label">Weight (grams)</label>
+                            {{ form.weight_grams }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_gold_purity" class="form-label">Purity</label>
+                            {{ form.gold_purity }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stocks/Mutual Funds Specific Fields -->
+                <div class="form-section category-section" data-categories="stocks,mutual_funds" id="investment-section">
+                    <h3 class="form-section-title">Investment Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_units" class="form-label">Units/Shares</label>
+                            {{ form.units }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_purchase_price_per_unit" class="form-label">Purchase Price per Unit</label>
+                            {{ form.purchase_price_per_unit }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_current_nav" class="form-label">Current NAV/Price</label>
+                            {{ form.current_nav }}
+                        </div>
+                        
+                        <div class="form-group folio-field" data-categories="mutual_funds">
+                            <label for="id_folio_number" class="form-label">Folio Number</label>
+                            {{ form.folio_number }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insurance Specific Fields -->
+                <div class="form-section category-section" data-categories="medical_insurance,life_insurance" id="insurance-section">
+                    <h3 class="form-section-title">Insurance Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_sum_assured" class="form-label">Sum Assured (₹)</label>
+                            {{ form.sum_assured }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_nominee" class="form-label">Nominee</label>
+                            {{ form.nominee }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_premium_amount" class="form-label">Premium Amount (₹)</label>
+                            {{ form.premium_amount }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_premium_frequency" class="form-label">Premium Frequency</label>
+                            {{ form.premium_frequency }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fixed Deposit Specific Fields -->
+                <div class="form-section category-section" data-categories="fixed_deposit" id="fd-section">
+                    <h3 class="form-section-title">Fixed Deposit Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_interest_rate" class="form-label">Interest Rate (%)</label>
+                            {{ form.interest_rate }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_maturity_amount" class="form-label">Maturity Amount (₹)</label>
+                            {{ form.maturity_amount }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Institution Info (shown for relevant categories) -->
+                <div class="form-section category-section" data-categories="stocks,mutual_funds,fixed_deposit,medical_insurance,life_insurance" id="institution-section">
+                    <h3 class="form-section-title">Institution Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="id_institution" class="form-label">Institution / Company</label>
+                            {{ form.institution }}
+                            <p class="form-hint">Bank, Broker, Insurance company, etc.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_policy_number" class="form-label">Policy / Account Number</label>
+                            {{ form.policy_number }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Documents</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Upload Documents</label>
+                        <div class="file-upload-zone">
+                            <input type="file" name="files" multiple 
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+                                   class="file-input" id="file-input">
+                            <label for="file-input" class="file-upload-label">
+                                <span class="file-upload-icon">📁</span>
+                                <span class="file-upload-text">Click to upload or drag files here</span>
+                                <span class="file-upload-hint">PDF, Images, Word, Excel (Max 10MB each)</span>
+                            </label>
+                        </div>
+                        <div id="file-list" class="file-preview-list"></div>
+                    </div>
+                    
+                    {% if documents %}
+                    <div class="existing-documents">
+                        <p class="text-sm text-muted-foreground mb-2">Existing Documents:</p>
+                        <div class="document-list">
+                            {% for doc in documents %}
+                            <div class="document-item">
+                                <span>📎 {{ doc.file_name }}</span>
+                                <a href="{% url 'document_delete' doc.pk %}" 
+                                   class="text-destructive text-sm"
+                                   onclick="return confirm('Delete this document?')">
+                                    Remove
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Actions -->
+            <div class="card-footer">
+                <div class="flex gap-4">
+                    <button type="submit" class="btn btn-primary">
+                        {% if is_edit %}Update Asset{% else %}Create Asset{% endif %}
+                    </button>
+                    <a href="{% if is_edit %}{% url 'asset_detail' form.instance.pk %}{% else %}{% url 'asset_list' %}{% endif %}" 
+                       class="btn btn-outline">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show/hide category-specific sections based on selected category
+function updateCategorySections() {
+    const category = document.getElementById('id_category').value;
+    
+    // Hide all category sections first
+    document.querySelectorAll('.category-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show sections relevant to selected category
+    document.querySelectorAll('.category-section').forEach(section => {
+        const categories = section.dataset.categories.split(',');
+        if (categories.includes(category)) {
+            section.style.display = 'block';
+        }
+    });
+    
+    // Handle coordinates section (only for lands within land-flat section)
+    const coordsSection = document.getElementById('coordinates-section');
+    if (coordsSection) {
+        coordsSection.style.display = category === 'lands' ? 'grid' : 'none';
+    }
+    
+    // Handle folio field (only for mutual_funds)
+    document.querySelectorAll('.folio-field').forEach(field => {
+        field.style.display = category === 'mutual_funds' ? 'block' : 'none';
+    });
+}
+
+// Run on page load and category change
+document.addEventListener('DOMContentLoaded', updateCategorySections);
+document.getElementById('id_category').addEventListener('change', updateCategorySections);
+
+// File preview
+document.getElementById('file-input').addEventListener('change', function(e) {
+    const fileList = document.getElementById('file-list');
+    fileList.innerHTML = '';
+    
+    Array.from(this.files).forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'file-preview-item';
+        div.innerHTML = `
+            <span>📎 ${file.name}</span>
+            <span class="text-muted-foreground text-sm">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+        `;
+        fileList.appendChild(div);
+    });
+});
+</script>
+{% endblock %}

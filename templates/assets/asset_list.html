@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Assets - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-center">Assets</h1>
+            <p class="text-muted-foreground mt-1">
+                {% if current_category %}
+                    Showing {{ current_category|title }} assets
+                {% else %}
+                    Manage all your assets
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'asset_create' %}" class="btn btn-primary">
+            + Add Asset
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+        <div class="card-content">
+            <form method="get" class="filter-form">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {{ filter_form.category }}
+                    {{ filter_form.search }}
+                    {{ filter_form.min_value }}
+                    {{ filter_form.max_value }}
+                </div>
+                <div class="flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'asset_list' %}" class="btn btn-outline">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assets Grid -->
+    {% if assets %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for asset in assets %}
+        <div class="card asset-list-card">
+            <div class="card-content">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="badge badge-{{ asset.category }}">{{ asset.get_category_display }}</span>
+                    <div class="dropdown">
+                        <button class="btn btn-ghost btn-sm dropdown-trigger">⋯</button>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'asset_detail' asset.pk %}" class="dropdown-item">View</a>
+                            <a href="{% url 'asset_update' asset.pk %}" class="dropdown-item">Edit</a>
+                            <a href="{% url 'asset_delete' asset.pk %}" class="dropdown-item text-destructive">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{% url 'asset_detail' asset.pk %}" class="block">
+                    <h3 class="font-semibold text-lg mb-1 hover:text-primary">{{ asset.name }}</h3>
+                    <p class="text-2xl font-bold text-primary mb-2">₹{{ asset.value|floatformat:2 }}</p>
+                    
+                    {% if asset.institution %}
+                    <p class="text-sm text-muted-foreground">{{ asset.institution }}</p>
+                    {% endif %}
+                    
+                    <div class="flex items-center justify-between mt-4 pt-4 border-t text-sm text-muted-foreground">
+                        <span>{{ asset.start_date|date:"M d, Y" }}</span>
+                        {% if asset.documents.count %}
+                        <span>📎 {{ asset.documents.count }} docs</span>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center gap-2 mt-8">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-outline">
+            ← Previous
+        </a>
+        {% endif %}
+        
+        <span class="btn btn-ghost">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-outline">
+            Next →
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-content empty-state">
+            <div class="text-center py-12">
+                <p class="text-xl mb-2">No assets found</p>
+                <p class="text-muted-foreground mb-4">
+                    {% if current_category %}
+                        No {{ current_category|title }} assets yet.
+                    {% else %}
+                        Start by adding your first asset.
+                    {% endif %}
+                </p>
+                <a href="{% url 'asset_create' %}{% if current_category %}?category={{ current_category }}{% endif %}" class="btn btn-primary">
+                    + Add Asset
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple dropdown toggle
+document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = trigger.nextElementSibling;
+        menu.classList.toggle('show');
+    });
+});
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+    });
+});
+</script>
+{% endblock %}

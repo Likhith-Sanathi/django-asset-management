@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Log - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold">Activity Log</h1>
+        <p class="text-muted-foreground mt-1">Track all changes to your assets</p>
+    </div>
+
+    <!-- Activity List -->
+    <div class="card">
+        <div class="card-content">
+            {% if logs %}
+            <div class="activity-list">
+                {% for log in logs %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        {% if log.action == 'create' %}🆕
+                        {% elif log.action == 'update' %}✏️
+                        {% elif log.action == 'delete' %}🗑️
+                        {% elif log.action == 'view' %}👁️
+                        {% elif log.action == 'upload' %}📤
+                        {% elif log.action == 'download' %}📥
+                        {% else %}📋{% endif %}
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-title">
+                            <span class="font-medium">{{ log.get_action_display }}</span>
+                            <span class="text-muted-foreground">-</span>
+                            <span>{{ log.asset_name }}</span>
+                        </p>
+                        {% if log.details %}
+                        <p class="activity-details">{{ log.details }}</p>
+                        {% endif %}
+                        <p class="activity-meta">
+                            {{ log.timestamp|date:"M d, Y H:i" }}
+                            {% if log.asset_category %}
+                            <span class="badge badge-sm">{{ log.asset_category }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="flex justify-center gap-2 mt-8 pt-6 border-t">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">
+                    ← Previous
+                </a>
+                {% endif %}
+                
+                <span class="btn btn-ghost">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                    Next →
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="empty-state">
+                <p class="text-xl mb-2">No activity yet</p>
+                <p class="text-muted-foreground">Activity will appear here as you manage your assets.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Asset Manager{% endblock %}</title>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS (Shadcn-inspired) -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-background text-foreground">
+    {% if user.is_authenticated %}
+    <!-- Navigation -->
+    <nav class="border-b bg-card sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-8">
+                    <a href="{% url 'dashboard' %}" class="text-xl font-semibold">
+                        💰 Asset Manager
+                    </a>
+                    <div class="hidden md:flex items-center gap-6">
+                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'asset_list' %}" class="nav-link {% if 'asset' in request.resolver_match.url_name %}active{% endif %}">
+                            Assets
+                        </a>
+                        <a href="{% url 'activity_log' %}" class="nav-link {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+                            Activity
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-muted-foreground hidden sm:block">
+                        {{ user.username }}
+                    </span>
+                    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mx-auto px-4 pt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-4">
+            {{ message }}
+            <button type="button" class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}container mx-auto px-4 py-6{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% if user.is_authenticated %}
+    <footer class="border-t mt-auto py-6">
+        <div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            Asset Manager © 2026 - Secure Asset Management
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- Chart.js (lightweight) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+    

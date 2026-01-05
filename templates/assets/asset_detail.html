@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ asset.name }} - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-muted-foreground">
+        <a href="{% url 'dashboard' %}" class="hover:text-primary">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'asset_list' %}" class="hover:text-primary">Assets</a>
+        <span class="mx-2">/</span>
+        <span>{{ asset.name }}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="badge badge-{{ asset.category }}">{{ asset.get_category_display }}</span>
+                {% if asset.is_active %}
+                <span class="badge badge-success">Active</span>
+                {% else %}
+                <span class="badge badge-muted">Expired</span>
+                {% endif %}
+            </div>
+            <h1 class="text-3xl font-bold">{{ asset.name }}</h1>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'asset_update' asset.pk %}" class="btn btn-outline">
+                Edit
+            </a>
+            <a href="{% url 'asset_delete' asset.pk %}" class="btn btn-destructive">
+                Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Value Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Asset Value</h2>
+                </div>
+                <div class="card-content">
+                    <p class="text-4xl font-bold text-primary">₹{{ asset.value|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <!-- Details Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Details</h2>
+                </div>
+                <div class="card-content">
+                    <dl class="detail-list">
+                        <div class="detail-item">
+                            <dt>Category</dt>
+                            <dd>{{ asset.get_category_display }}</dd>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <dt>Start Date</dt>
+                            <dd>{{ asset.start_date|date:"F d, Y" }}</dd>
+                        </div>
+                        
+                        {% if asset.end_date %}
+                        <div class="detail-item">
+                            <dt>End Date</dt>
+                            <dd>{{ asset.end_date|date:"F d, Y" }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.institution %}
+                        <div class="detail-item">
+                            <dt>Institution</dt>
+                            <dd>{{ asset.institution }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.policy_number %}
+                        <div class="detail-item">
+                            <dt>Policy/Account Number</dt>
+                            <dd>{{ asset.policy_number }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Land/Property specific fields -->
+                        {% if asset.area %}
+                        <div class="detail-item">
+                            <dt>Area</dt>
+                            <dd>{{ asset.area }} {{ asset.get_area_unit_display|default:"sq ft" }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.latitude and asset.longitude %}
+                        <div class="detail-item">
+                            <dt>Coordinates</dt>
+                            <dd>
+                                <a href="https://www.google.com/maps?q={{ asset.latitude }},{{ asset.longitude }}" 
+                                   target="_blank" class="text-primary hover:underline">
+                                    {{ asset.latitude }}, {{ asset.longitude }} ↗
+                                </a>
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Gold specific fields -->
+                        {% if asset.weight_grams %}
+                        <div class="detail-item">
+                            <dt>Weight</dt>
+                            <dd>{{ asset.weight_grams }} grams</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.gold_purity %}
+                        <div class="detail-item">
+                            <dt>Gold Purity</dt>
+                            <dd>{{ asset.get_gold_purity_display }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Stock/MF specific fields -->
+                        {% if asset.units %}
+                        <div class="detail-item">
+                            <dt>Units/Shares</dt>
+                            <dd>{{ asset.units }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.purchase_price_per_unit %}
+                        <div class="detail-item">
+                            <dt>Purchase Price/Unit</dt>
+                            <dd>₹{{ asset.purchase_price_per_unit|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.current_nav %}
+                        <div class="detail-item">
+                            <dt>Current NAV/Price</dt>
+                            <dd>₹{{ asset.current_nav|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.folio_number %}
+                        <div class="detail-item">
+                            <dt>Folio Number</dt>
+                            <dd>{{ asset.folio_number }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Insurance specific fields -->
+                        {% if asset.sum_assured %}
+                        <div class="detail-item">
+                            <dt>Sum Assured</dt>
+                            <dd>₹{{ asset.sum_assured|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.premium_amount %}
+                        <div class="detail-item">
+                            <dt>Premium Amount</dt>
+                            <dd>₹{{ asset.premium_amount|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.premium_frequency %}
+                        <div class="detail-item">
+                            <dt>Premium Frequency</dt>
+                            <dd>{{ asset.get_premium_frequency_display }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.nominee %}
+                        <div class="detail-item">
+                            <dt>Nominee</dt>
+                            <dd>{{ asset.nominee }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- FD specific fields -->
+                        {% if asset.interest_rate %}
+                        <div class="detail-item">
+                            <dt>Interest Rate</dt>
+                            <dd>{{ asset.interest_rate }}%</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.maturity_amount %}
+                        <div class="detail-item">
+                            <dt>Maturity Amount</dt>
+                            <dd>₹{{ asset.maturity_amount|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if asset.description %}
+                        <div class="detail-item full-width">
+                            <dt>Description</dt>
+                            <dd>{{ asset.description|linebreaks }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Documents Card -->
+            <div class="card">
+                <div class="card-header flex-row justify-between items-center">
+                    <h2 class="card-title">Documents</h2>
+                    <a href="{% url 'asset_update' asset.pk %}" class="btn btn-outline btn-sm">
+                        + Upload
+                    </a>
+                </div>
+                <div class="card-content">
+                    {% if documents %}
+                    <div class="document-list">
+                        {% for doc in documents %}
+                        <div class="document-item">
+                            <div class="document-icon">
+                                {% if '.pdf' in doc.file_name %}📄
+                                {% elif '.jpg' in doc.file_name or '.jpeg' in doc.file_name or '.png' in doc.file_name or '.gif' in doc.file_name %}🖼️
+                                {% elif '.doc' in doc.file_name %}📝
+                                {% elif '.xls' in doc.file_name %}📊
+                                {% else %}📎{% endif %}
+                            </div>
+                            <div class="document-info">
+                                <a href="{% url 'document_download' doc.pk %}" class="document-name">
+                                    {{ doc.file_name }}
+                                </a>
+                                <p class="document-meta">
+                                    Uploaded {{ doc.uploaded_at|date:"M d, Y" }} • {{ doc.file_size|filesizeformat }}
+                                </p>
+                            </div>
+                            <div class="document-actions">
+                                <a href="{% url 'document_download' doc.pk %}" class="btn btn-ghost btn-sm">
+                                    Download
+                                </a>
+                                <a href="{% url 'document_delete' doc.pk %}" 
+                                   class="btn btn-ghost btn-sm text-destructive"
+                                   onclick="return confirm('Are you sure you want to delete this document?')">
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No documents uploaded yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Metadata Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Information</h2>
+                </div>
+                <div class="card-content">
+                    <dl class="space-y-4 text-sm">
+                        <div>
+                            <dt class="text-muted-foreground">Created</dt>
+                            <dd class="font-medium">{{ asset.created_at|date:"F d, Y H:i" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-muted-foreground">Last Updated</dt>
+                            <dd class="font-medium">{{ asset.updated_at|date:"F d, Y H:i" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-muted-foreground">Documents</dt>
+                            <dd class="font-medium">{{ documents.count }} file{% if documents.count != 1 %}s{% endif %}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Actions</h2>
+                </div>
+                <div class="card-content space-y-2">
+                    <a href="{% url 'asset_update' asset.pk %}" class="btn btn-outline w-full">
+                        ✏️ Edit Asset
+                    </a>
+                    <a href="{% url 'asset_create' %}?category={{ asset.category }}" class="btn btn-outline w-full">
+                        + Add Similar
+                    </a>
+                    <a href="{% url 'asset_list' %}?category={{ asset.category }}" class="btn btn-ghost w-full">
+                        View All {{ asset.get_category_display }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

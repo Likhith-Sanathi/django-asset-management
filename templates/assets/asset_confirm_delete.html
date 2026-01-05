@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Asset - Asset Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-muted-foreground">
+        <a href="{% url 'dashboard' %}" class="hover:text-primary">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'asset_list' %}" class="hover:text-primary">Assets</a>
+        <span class="mx-2">/</span>
+        <span>Delete</span>
+    </nav>
+
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title text-destructive">Delete Asset</h1>
+        </div>
+        <div class="card-content">
+            <div class="alert alert-warning mb-6">
+                <strong>Warning:</strong> This action cannot be undone.
+            </div>
+            
+            <p class="mb-4">Are you sure you want to delete the following asset?</p>
+            
+            <div class="bg-muted p-4 rounded-lg mb-6">
+                <h3 class="font-semibold text-lg">{{ asset.name }}</h3>
+                <p class="text-muted-foreground">{{ asset.get_category_display }}</p>
+                <p class="text-2xl font-bold text-primary mt-2">₹{{ asset.value|floatformat:2 }}</p>
+                {% if asset.documents.count %}
+                <p class="text-sm text-muted-foreground mt-2">
+                    ⚠️ This will also delete {{ asset.documents.count }} attached document{% if asset.documents.count != 1 %}s{% endif %}.
+                </p>
+                {% endif %}
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex gap-4">
+                    <button type="submit" class="btn btn-destructive">
+                        Yes, Delete Asset
+                    </button>
+                    <a href="{% url 'asset_detail' asset.pk %}" class="btn btn-outline">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
